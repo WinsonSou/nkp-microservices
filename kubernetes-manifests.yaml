@@ -731,7 +731,7 @@ spec:
             - containerPort: 7070
           env:
             - name: REDIS_ADDR
-              value: 'redis-sentinel.microservices-demo.svc.cluster.local:26379,serviceName=mymaster,tieBreaker=,abortConnect=false'
+              value: 'redis-sentinel:26379,serviceName=mymaster,tieBreaker=,abortConnect=false'
           resources:
             requests:
               cpu: 200m
