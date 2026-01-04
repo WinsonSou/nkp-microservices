@@ -34,6 +34,13 @@ data:
     # Get the namespace from environment variable (set via downward API)
     NAMESPACE=${POD_NAMESPACE:-microservices-demo}
 
+    # Wait for Redis pods to be resolvable
+    echo "Waiting for Redis pods in namespace: $NAMESPACE"
+    until getent hosts redis-0.redis.${NAMESPACE}.svc.cluster.local >/dev/null 2>&1; do
+      echo "Waiting for redis-0 to be resolvable..."
+      sleep 5
+    done
+
     # Get Redis pod IPs using getent (more reliable than nslookup in alpine)
     echo "Getting Redis pod IPs in namespace: $NAMESPACE"
     REDIS_0_IP=$(getent hosts redis-0.redis.${NAMESPACE}.svc.cluster.local | awk '{print $1}')
