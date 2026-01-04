@@ -31,11 +31,11 @@ data:
     #!/bin/sh
     set -e
 
-    # Get Redis pod IPs
+    # Get Redis pod IPs using getent (more reliable than nslookup in alpine)
     echo "Getting Redis pod IPs..."
-    REDIS_0_IP=$(nslookup redis-0.redis.microservices-demo.svc.cluster.local | grep 'Address:' | tail -1 | awk '{print $2}')
-    REDIS_1_IP=$(nslookup redis-1.redis.microservices-demo.svc.cluster.local | grep 'Address:' | tail -1 | awk '{print $2}')
-    REDIS_2_IP=$(nslookup redis-2.redis.microservices-demo.svc.cluster.local | grep 'Address:' | tail -1 | awk '{print $2}')
+    REDIS_0_IP=$(getent hosts redis-0.redis.microservices-demo.svc.cluster.local | awk '{print $1}')
+    REDIS_1_IP=$(getent hosts redis-1.redis.microservices-demo.svc.cluster.local | awk '{print $1}')
+    REDIS_2_IP=$(getent hosts redis-2.redis.microservices-demo.svc.cluster.local | awk '{print $1}')
 
     echo "Redis IPs: $REDIS_0_IP, $REDIS_1_IP, $REDIS_2_IP"
 
