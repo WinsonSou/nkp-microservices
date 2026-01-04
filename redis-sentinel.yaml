@@ -31,11 +31,14 @@ data:
     #!/bin/sh
     set -e
 
+    # Get the namespace from environment variable (set via downward API)
+    NAMESPACE=${POD_NAMESPACE:-microservices-demo}
+
     # Get Redis pod IPs using getent (more reliable than nslookup in alpine)
-    echo "Getting Redis pod IPs..."
-    REDIS_0_IP=$(getent hosts redis-0.redis.microservices-demo.svc.cluster.local | awk '{print $1}')
-    REDIS_1_IP=$(getent hosts redis-1.redis.microservices-demo.svc.cluster.local | awk '{print $1}')
-    REDIS_2_IP=$(getent hosts redis-2.redis.microservices-demo.svc.cluster.local | awk '{print $1}')
+    echo "Getting Redis pod IPs in namespace: $NAMESPACE"
+    REDIS_0_IP=$(getent hosts redis-0.redis.${NAMESPACE}.svc.cluster.local | awk '{print $1}')
+    REDIS_1_IP=$(getent hosts redis-1.redis.${NAMESPACE}.svc.cluster.local | awk '{print $1}')
+    REDIS_2_IP=$(getent hosts redis-2.redis.${NAMESPACE}.svc.cluster.local | awk '{print $1}')
 
     echo "Redis IPs: $REDIS_0_IP, $REDIS_1_IP, $REDIS_2_IP"
 
@@ -147,6 +150,11 @@ spec:
           command:
             - sh
             - /scripts/init.sh
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           volumeMounts:
             - name: config
               mountPath: /etc/redis-sentinel
