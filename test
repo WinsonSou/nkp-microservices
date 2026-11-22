@@ -1,0 +1,72 @@
+cni:
+  profile: ambient
+  cni:
+    ambient:
+      enabled: true
+istiod:
+  profile: ambient
+  meshConfig:
+    enableTracing: true
+    extensionProviders:
+      - name: jaeger
+        opentelemetry:
+          port: 4317
+          service: jaeger-jaeger-operator-jaeger-collector.istio-system.svc.cluster.local
+    defaultProviders:
+      tracing:
+        - jaeger
+  pilot:
+    env:
+      PILOT_ENABLE_AMBIENT: true
+      PILOT_ENABLE_AMBIENT_CONTROLLERS: true
+      PILOT_ENABLE_HBONE: true
+      CA_TRUSTED_NODE_ACCOUNTS: 'istio-helm-gateway-ns/ztunnel,kube-system/ztunnel'
+ztunnel:
+  enabled: true
+  env:
+    CA_ADDRESS: 'istiod-istio-helm.istio-helm-system.svc:15012'
+    XDS_ADDRESS: 'istiod-istio-helm.istio-helm-system.svc:15012'
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: waypoint
+  namespace: cool-project-name-jqzb9
+  labels:
+    istio.io/waypoint-for: service
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE
+---
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: istio-helm-system # root namespace
+spec:
+  tracing:
+    - providers:
+        - name: jaeger
+      randomSamplingPercentage: 100
+---
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: app-tracing
+  namespace: cool-project-name-jqzb9
+spec:
+  tracing:
+    - providers:
+        - name: jaeger
+      randomSamplingPercentage: 100
+      customTags:
+        request.id:
+          header:
+            name: x-request-id
+        trace.parent:
+          header:
+            name: traceparent
